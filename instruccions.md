@@ -1,6 +1,7 @@
 ## Arduino Uno R3
 
 (Nota en flecha roja: Se recomienda revisar "attachInterrupt")
+
 - Implemente una ISR que responda a un botón:
   - Modificar el estado de una variable global (volatile)
 - En la rutina principal muestre el estado de la variable global
