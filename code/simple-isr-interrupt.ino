@@ -16,14 +16,26 @@ Components required:
 // The Arduino UNO R3 supports hardware interrupts on digital pins 2 and 3.  
 const int buttonPin = 2;
 
-// 1. Use of 'volatile' (Best Practice)  
-// Global variable that changes with the interrupt  
+// 1. Use of 'volatile' (Best Practice)
+// Global variable that changes with the interrupt
 volatile int system_state = NORMAL_STATE;
 
-// 2. Interrupt Service Routine (ISR)  
-// Kept as short as possible (Best Practice)  
-void on_button_press() {  
-    system_state = INTERRUPTED_STATE;  
+// Debouncing: time-window guard inside the ISR.
+// Since this is an edge-triggered ISR (RISING), we discard spurious edges
+// that arrive within DEBOUNCE_MS of the last accepted press.
+const unsigned long DEBOUNCE_MS = 200;        // anti-bounce window
+volatile unsigned long last_isr_time = 0;     // timestamp of last valid edge
+
+// 2. Interrupt Service Routine (ISR)
+// Kept as short as possible (Best Practice)
+void on_button_press() {
+    // millis() is readable inside an ISR; its counter does not advance during
+    // the ISR, but the captured value is valid to compare against the last edge.
+    unsigned long now = millis();
+    if (now - last_isr_time >= DEBOUNCE_MS) {
+        system_state = INTERRUPTED_STATE;
+        last_isr_time = now;
+    }
 }
 
 void setup() {  
